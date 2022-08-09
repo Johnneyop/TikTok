@@ -1,18 +1,18 @@
-import '../styles/globals.css'
-import type { AppProps } from 'next/app'
-import { useState, useEffect } from 'react';
+import type { AppProps } from 'next/app';
+import { useEffect, useState } from 'react';
+
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
+import '../styles/globals.css';
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
-  const [isSSR, setIsSSR] = useState(true); // SSR = sever side rendering
+  const [isSSR, setIsSSR] = useState(true);
 
   useEffect(() => {
     setIsSSR(false);
+  }, []);  
 
-  }, []);
-
-  if(isSSR) return null;
+  if (isSSR) return null;
 
   return (
     <div>
