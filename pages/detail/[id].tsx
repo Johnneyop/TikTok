@@ -9,13 +9,16 @@ import { HiVolumeUp, HiVolumeOff } from 'react-icons/hi';
 import axios from 'axios';
 import { BASE_URL } from '../../utils';
 import { Video } from '../../types';
+import useAuthStore from '../../store/authStore';
+import LikeButton from '../../components/LikeButton';
+import Comments from '../../components/Comments';
 
 
 interface IProps {
   postDetails: Video;
 }
 
-const Detail = ({ postDetails }) => {
+const Detail = ({ postDetails }: IProps) => {
   const [post, setPost] = useState(postDetails);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isVideoMuted, setIsVideoMuted] = useState<boolean>(false);
@@ -23,6 +26,8 @@ const Detail = ({ postDetails }) => {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
+
+  const { userProfile }: any = useAuthStore();
 
   const onVideoClick = () => {
     if (isPlaying) {
@@ -39,6 +44,17 @@ const Detail = ({ postDetails }) => {
       videoRef.current.muted = isVideoMuted;
     }
   }, [post, isVideoMuted]);
+
+  const handleLike = async (like: boolean) => {
+    if (userProfile) {
+      const res = await axios.put(`${BASE_URL}/api/like`, {
+        userId: userProfile._id,
+        postId: post._id,
+        like
+      });
+      setPost({ ...post, likes: res.data.likes });
+    }
+  };
 
 
   if(!post) return null;
@@ -70,7 +86,6 @@ const Detail = ({ postDetails }) => {
               )}
           </div>
         </div>
-
         <div className='absolute bottom-5 lg:bottom-10 right-5 lg:right-10  cursor-pointer'>
           {isVideoMuted ? (
             <button onClick={() => setIsVideoMuted(false)}>
@@ -83,6 +98,44 @@ const Detail = ({ postDetails }) => {
           )}
         </div>
       </div>
+
+      <div className='relative w-[1000px] md:w-[900px] lg:w-[700px]'>
+            <div className='lg:mt-20 mt-10'>
+              <Link href={`/profile/${post.postedBy._id}`}>
+                <div className='flex gap-4 mb-4 bg-white w-full pl-10 cursor-pointer'>
+                  <Image
+                    width={60}
+                    height={60}
+                    alt='user-profile'
+                    className='rounded-full'
+                    src={post.postedBy.image}
+                  />
+                  <div>
+                    <div className='text-xl font-bold lowercase tracking-wider flex gap-2 items-center justify-center'>
+                      {post.postedBy.userName.replace(/\s+/g, '')}{' '}
+                      <GoVerified className='text-blue-400 text-xl' />
+                    </div>
+                    <p className='text-md'> {post.postedBy.userName}</p>
+                  </div>
+                </div>
+              </Link>
+              <div className='px-10'>
+                <p className=' text-md text-gray-600'>{post.caption}</p>
+              </div>
+              <div className='mt-10 px-10'>
+                {userProfile && <LikeButton
+                  likes={post.likes}
+                  flex='flex'
+                  handleLike={() => handleLike(true)}
+                  handleDislike={() => handleLike(false)}
+                />}
+              </div>
+              <Comments
+
+              />
+            </div>
+          </div>
+
     </div>
   )
 }
